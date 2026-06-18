@@ -78,7 +78,7 @@ export default function Home() {
             <button
               key={game.id}
               disabled={!live}
-              onClick={() => live && startGame(game.id)}
+              onClick={() => live && setPendingGameId(game.id)}
               className="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-6 text-left transition enabled:hover:-translate-y-1 enabled:hover:border-white/20 enabled:hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <div
