@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { GAMES } from "@/games/catalog";
 import { makeRoomCode } from "@/lib/code";
@@ -8,11 +8,31 @@ import { makeRoomCode } from "@/lib/code";
 export default function Home() {
   const router = useRouter();
   const [joinCode, setJoinCode] = useState("");
+  const [pendingGameId, setPendingGameId] = useState<string | null>(null);
 
-  function startGame(gameId: string) {
+  const pendingGame = pendingGameId
+    ? GAMES.find((g) => g.id === pendingGameId) ?? null
+    : null;
+
+  function confirmStart() {
+    if (!pendingGameId) return;
     const code = makeRoomCode();
-    router.push(`/room/${code}?game=${gameId}`);
+    router.push(`/room/${code}?game=${pendingGameId}`);
+    setPendingGameId(null);
   }
+
+  function cancelStart() {
+    setPendingGameId(null);
+  }
+
+  useEffect(() => {
+    if (!pendingGameId) return;
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") cancelStart();
+    }
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [pendingGameId]);
 
   function joinRoom(e: React.FormEvent) {
     e.preventDefault();
