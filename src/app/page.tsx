@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { GAMES } from "@/games/catalog";
 import { makeRoomCode } from "@/lib/code";
@@ -8,11 +8,31 @@ import { makeRoomCode } from "@/lib/code";
 export default function Home() {
   const router = useRouter();
   const [joinCode, setJoinCode] = useState("");
+  const [pendingGameId, setPendingGameId] = useState<string | null>(null);
 
-  function startGame(gameId: string) {
+  const pendingGame = pendingGameId
+    ? GAMES.find((g) => g.id === pendingGameId) ?? null
+    : null;
+
+  function confirmStart() {
+    if (!pendingGameId) return;
     const code = makeRoomCode();
-    router.push(`/room/${code}?game=${gameId}`);
+    router.push(`/room/${code}?game=${pendingGameId}`);
+    setPendingGameId(null);
   }
+
+  function cancelStart() {
+    setPendingGameId(null);
+  }
+
+  useEffect(() => {
+    if (!pendingGameId) return;
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") cancelStart();
+    }
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [pendingGameId]);
 
   function joinRoom(e: React.FormEvent) {
     e.preventDefault();
@@ -58,7 +78,7 @@ export default function Home() {
             <button
               key={game.id}
               disabled={!live}
-              onClick={() => live && startGame(game.id)}
+              onClick={() => live && setPendingGameId(game.id)}
               className="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-6 text-left transition enabled:hover:-translate-y-1 enabled:hover:border-white/20 enabled:hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <div
@@ -90,6 +110,48 @@ export default function Home() {
       <footer className="mt-16 text-center text-sm text-violet-100/30">
         An open-source real-time multiplayer games starter
       </footer>
+
+      {pendingGame && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+          onClick={cancelStart}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="confirm-dialog-heading"
+            className="mx-4 w-full max-w-sm rounded-2xl border border-white/10 bg-zinc-900/90 p-8 shadow-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mb-2 text-4xl">{pendingGame.emoji}</div>
+            <h2
+              id="confirm-dialog-heading"
+              className="mb-2 text-2xl font-bold"
+            >
+              Start a new {pendingGame.name} room?
+            </h2>
+            <p className="mb-6 text-sm text-violet-100/60">
+              A fresh room code will be generated and you&apos;ll be taken
+              straight to your new room. Share the link with friends to play
+              together.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={confirmStart}
+                className="flex-1 rounded-xl bg-violet-600 px-5 py-3 font-semibold transition hover:bg-violet-500"
+              >
+                Start room
+              </button>
+              <button
+                onClick={cancelStart}
+                className="flex-1 rounded-xl bg-white/10 px-5 py-3 font-semibold transition hover:bg-white/20"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
