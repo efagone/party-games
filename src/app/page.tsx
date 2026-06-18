@@ -110,6 +110,48 @@ export default function Home() {
       <footer className="mt-16 text-center text-sm text-violet-100/30">
         An open-source real-time multiplayer games starter
       </footer>
+
+      {pendingGame && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+          onClick={cancelStart}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="confirm-dialog-heading"
+            className="mx-4 w-full max-w-sm rounded-2xl border border-white/10 bg-zinc-900/90 p-8 shadow-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mb-2 text-4xl">{pendingGame.emoji}</div>
+            <h2
+              id="confirm-dialog-heading"
+              className="mb-2 text-2xl font-bold"
+            >
+              Start a new {pendingGame.name} room?
+            </h2>
+            <p className="mb-6 text-sm text-violet-100/60">
+              A fresh room code will be generated and you&apos;ll be taken
+              straight to your new room. Share the link with friends to play
+              together.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={confirmStart}
+                className="flex-1 rounded-xl bg-violet-600 px-5 py-3 font-semibold transition hover:bg-violet-500"
+              >
+                Start room
+              </button>
+              <button
+                onClick={cancelStart}
+                className="flex-1 rounded-xl bg-white/10 px-5 py-3 font-semibold transition hover:bg-white/20"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
